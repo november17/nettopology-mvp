@@ -1,0 +1,66 @@
+# .github/workflows/release.yml
+# NetTopology Automated Release Workflow
+
+name: Create Release
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    # When you 'git tag v0.1.0 && git push origin v0.1.0', this runs.
+    tags:
+      - 'v*' # Match tags starting with 'v', e.g., v1.0, v0.1.0-alpha
+
+jobs:
+  build:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions: # Required permission to create releases
+      contents: write 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Required if you need git history for changelog tools, 
+          # but not strictly required by the create-release action.
+          fetch-depth: 0 
+
+      # OPTIONAL: Build your binaries here if NetTopology needs compilation.
+      # - name: Build Binaries
+      #   run: |
+      #     make build-linux
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-create-release@v1
+        with:
+          # The tag name is passed automatically by the 'on' trigger
+          tag_name: ${{ github.ref_name }}
+          # The title we defined above (using the tag name as the version)
+          release_name: NetTopology MVP Initial Release - ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          # You can manually set the body or use a file like CHANGELOG.md
+          body: |
+            ### Initial Release Announcement
+
+            Welcome to the initial MVP release of NetTopology, an open-source network topology engine designed for Linux systems!
+
+            #### Key Features (MVP):
+            * **Design:** Intuitive visual engine for charting complex network layouts.
+            * **Validate:** Automated verification of network constraints and configurations.
+            * **Configure:** Generate foundational configurations (VLANs, Bridges, Routing table entries).
+            * **Linux Native:** Built from the ground up for the Linux kernel networking ecosystem.
+
+            We are excited to share this first step toward making advanced network automation accessible to everyone. Check out the documentation to get started!
+
+            ### Getting Started
+            - See the [Quickstart Guide](link_to_docs)
+            - Report bugs on our [Issues](link_to_issues)
+
+          # If you built binaries above, upload them here:
+          # files: |
+          #   dist/nettopology-linux-amd64
+          #   dist/nettopology-linux-arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
